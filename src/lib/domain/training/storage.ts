@@ -1,4 +1,4 @@
-import { createDefaultProgram, createDefaultTemplates, createInitialStore } from "./defaults";
+import { createDefaultProgram, createDefaultTemplates, createInitialStore, capSetsToDefault } from "./defaults";
 import type { TrainingStore } from "./types";
 import { createId } from "./utils";
 
@@ -25,11 +25,20 @@ function migrateStore(raw: Partial<TrainingStore>): TrainingStore {
     programId: t.programId ?? store.programs[0].id,
     exercises: t.exercises.map((ex) => ({
       ...ex,
-      sets: ex.sets.length === 3 ? ex.sets.slice(0, 2) : ex.sets,
+      sets: capSetsToDefault(ex.sets),
     })),
   }));
 
   store.activeSession = store.activeSession ?? null;
+  if (store.activeSession) {
+    store.activeSession = {
+      ...store.activeSession,
+      exercises: store.activeSession.exercises.map((ex) => ({
+        ...ex,
+        sets: capSetsToDefault(ex.sets),
+      })),
+    };
+  }
   store.history = store.history ?? [];
   store.pendingClosure = store.pendingClosure ?? null;
 

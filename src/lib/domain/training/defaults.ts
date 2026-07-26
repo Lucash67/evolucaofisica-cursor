@@ -99,3 +99,7 @@ export function createInitialStore() {
 }
 
 export { DEFAULT_SET_COUNT };
+
+export function capSetsToDefault<T>(sets: T[]): T[] {
+  return sets.length > DEFAULT_SET_COUNT ? sets.slice(0, DEFAULT_SET_COUNT) : sets;
+}

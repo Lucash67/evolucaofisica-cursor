@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { computeClosureStats } from "@/lib/domain/training/session-stats";
+import { capSetsToDefault } from "@/lib/domain/training/defaults";
 import { normalizeExercisesForSave } from "@/lib/domain/training/format";
 import { getLastPerformance } from "@/lib/domain/training/progression";
 import { loadTrainingStore, saveTrainingStore } from "@/lib/domain/training/storage";
@@ -73,7 +73,7 @@ function sessionFromTemplate(
         notes: "",
         referenceNote: ex.notes.trim(),
         order: ex.order,
-        sets: ex.sets.map((s, i) => ({
+        sets: capSetsToDefault(ex.sets).map((s) => ({
           id: createId(),
           loadKg: last?.loadKg ?? s.targetLoadKg ?? null,
           reps: last?.reps ?? s.targetReps,
