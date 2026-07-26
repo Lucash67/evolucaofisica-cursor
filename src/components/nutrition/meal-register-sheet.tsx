@@ -1,8 +1,8 @@
 "use client";
 
-import { MEAL_SIZE_ESTIMATES, MEAL_TYPE_LABELS } from "@/lib/domain/meal-presets";
-import type { MealSize, MealType } from "@/lib/domain/types";
-import { useNutrition } from "@/context/nutrition-context";
+import { useEffect, useState } from "react";
+
+import { MealVictoryPanel } from "@/components/nutrition/meal-victory-panel";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -11,8 +11,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useNutrition } from "@/context/nutrition-context";
+import { MEAL_SIZE_ESTIMATES, MEAL_TYPE_LABELS } from "@/lib/domain/meal-presets";
+import { buildMealVictory } from "@/lib/domain/nutrition/progress-copy";
+import type { MealSize, MealType } from "@/lib/domain/types";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 const mealTypes: MealType[] = ["cafe", "almoco", "jantar", "lanche"];
 const mealSizes: MealSize[] = ["pequeno", "medio", "grande"];
@@ -23,13 +26,15 @@ interface MealRegisterSheetProps {
 }
 
 export function MealRegisterSheet({ open, onOpenChange }: MealRegisterSheetProps) {
-  const { logMeal } = useNutrition();
-  const [step, setStep] = useState<"type" | "size">("type");
+  const { logMeal, goals, todayTotals } = useNutrition();
+  const [step, setStep] = useState<"type" | "size" | "victory">("type");
   const [selectedType, setSelectedType] = useState<MealType | null>(null);
+  const [victory, setVictory] = useState<ReturnType<typeof buildMealVictory> | null>(null);
 
   const reset = () => {
     setStep("type");
     setSelectedType(null);
+    setVictory(null);
   };
 
   const handleClose = (value: boolean) => {
@@ -39,22 +44,37 @@ export function MealRegisterSheet({ open, onOpenChange }: MealRegisterSheetProps
 
   const confirmMeal = (size: MealSize) => {
     if (!selectedType) return;
+    const proteinAdded = MEAL_SIZE_ESTIMATES[size].protein;
+    const before = todayTotals.proteinCurrent;
+    setVictory(buildMealVictory(before, proteinAdded, goals.proteinTarget));
     logMeal(selectedType, size);
-    handleClose(false);
+    setStep("victory");
   };
+
+  useEffect(() => {
+    if (step !== "victory" || !open) return;
+    const timer = window.setTimeout(() => handleClose(false), 2400);
+    return () => window.clearTimeout(timer);
+  }, [step, open]);
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="rounded-t-2xl pb-8">
         <SheetHeader className="text-left">
-          <SheetTitle>Registrar refeição</SheetTitle>
+          <SheetTitle>
+            {step === "victory" ? "Refeição registrada" : "Registrar refeição"}
+          </SheetTitle>
           <SheetDescription>
-            {step === "type" ? "Escolha a refeição" : MEAL_TYPE_LABELS[selectedType!]}
+            {step === "type" && "Escolha a refeição"}
+            {step === "size" && MEAL_TYPE_LABELS[selectedType!]}
+            {step === "victory" && "Isso te aproximou do objetivo de hoje."}
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6">
-          {step === "type" ? (
+          {step === "victory" && victory ? (
+            <MealVictoryPanel victory={victory} />
+          ) : step === "type" ? (
             <div className="grid grid-cols-2 gap-2">
               {mealTypes.map((type) => (
                 <Button
@@ -86,7 +106,7 @@ export function MealRegisterSheet({ open, onOpenChange }: MealRegisterSheetProps
                   >
                     <span className="font-medium">{est.label}</span>
                     <span className="text-sm text-muted-foreground">
-                      ~{est.protein}g P · ~{est.calories} kcal
+                      +{est.protein}g · ~{est.calories} kcal
                     </span>
                   </button>
                 );

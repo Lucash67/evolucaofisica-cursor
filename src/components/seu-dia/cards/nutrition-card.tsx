@@ -4,6 +4,13 @@ import { Plus } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { SurfaceLabel } from "@/components/ui/surface";
 import { useDay } from "@/context/day-context";
+import { useNutrition } from "@/context/nutrition-context";
+import {
+  buildProteinProgress,
+  getGapCopy,
+  getProgressStory,
+  getYesterdayDayKey,
+} from "@/lib/domain/nutrition/progress-copy";
 import { cn } from "@/lib/utils";
 
 export type NutritionLayout = "stack" | "split";
@@ -22,8 +29,20 @@ export function NutritionCard({
   embedded,
 }: NutritionCardProps) {
   const { state } = useDay();
+  const { todayMeals, historyByDay } = useNutrition();
   const { proteinCurrent, proteinTarget, caloriesCurrent, caloriesTarget } = state.nutrition;
-  const proteinPct = Math.min(100, Math.round((proteinCurrent / proteinTarget) * 100));
+
+  const progress = buildProteinProgress(proteinCurrent, proteinTarget);
+  const yesterdayKey = getYesterdayDayKey();
+  const yesterdayProtein =
+    historyByDay.find(({ dayKey }) => dayKey === yesterdayKey)?.totals.proteinCurrent ?? null;
+  const storyLine = getProgressStory({
+    current: proteinCurrent,
+    yesterdayProtein,
+    mealCountToday: todayMeals.length,
+    pct: progress.pct,
+  });
+  const gapLine = getGapCopy(progress.gap, progress.pct);
   const caloriesPct = Math.min(100, Math.round((caloriesCurrent / caloriesTarget) * 100));
   const isSplit = layout === "split";
 
@@ -49,7 +68,11 @@ export function NutritionCard({
             {proteinCurrent}
             <span className="ml-1 text-base font-normal text-muted-foreground">/ {proteinTarget}g</span>
           </p>
-          <Progress value={proteinPct} className="mt-3 h-1 bg-muted/80 [&>div]:bg-accent/90" />
+          <Progress value={progress.pct} className="mt-3 h-1 bg-muted/80 [&>div]:bg-accent/90" />
+          <p className="mt-2 text-sm text-foreground">{progress.gap > 0 ? gapLine : storyLine}</p>
+          {progress.gap > 0 && storyLine !== gapLine && (
+            <p className="mt-1 text-xs text-muted-foreground">{storyLine}</p>
+          )}
         </div>
 
         <div className={cn(!isSplit && "mt-4")}>

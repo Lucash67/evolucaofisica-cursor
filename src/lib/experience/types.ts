@@ -21,6 +21,7 @@ export interface ExperienceContext {
   proteinCurrent: number;
   proteinTarget: number;
   dayState: ConceptualDayState;
+  timeOfDay: "morning" | "afternoon" | "evening";
   workoutName: string;
   workoutDurationMin: number;
   workoutsThisWeek: number;

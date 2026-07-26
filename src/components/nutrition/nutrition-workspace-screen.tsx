@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
-import { Plus, Repeat, Trash2, Utensils } from "lucide-react";
+import { Plus, Repeat, Trash2 } from "lucide-react";
 
 import { MealRegisterSheet } from "@/components/nutrition/meal-register-sheet";
+import { ProteinProgressPanel } from "@/components/nutrition/protein-progress-panel";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Surface } from "@/components/ui/surface";
 import { useDay } from "@/context/day-context";
 import { useNutrition } from "@/context/nutrition-context";
 import { MEAL_SIZE_ESTIMATES, MEAL_TYPE_LABELS } from "@/lib/domain/meal-presets";
+import { getYesterdayDayKey } from "@/lib/domain/nutrition/progress-copy";
 import { formatDayKey } from "@/lib/domain/training/utils";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +29,9 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
   const [proteinDraft, setProteinDraft] = useState(String(goals.proteinTarget));
   const [caloriesDraft, setCaloriesDraft] = useState(String(goals.caloriesTarget));
 
-  const proteinPct = Math.min(
-    100,
-    Math.round((todayTotals.proteinCurrent / goals.proteinTarget) * 100) || 0,
-  );
-  const proteinGap = Math.max(0, goals.proteinTarget - todayTotals.proteinCurrent);
+  const yesterdayKey = getYesterdayDayKey();
+  const yesterdayProtein =
+    historyByDay.find(({ dayKey }) => dayKey === yesterdayKey)?.totals.proteinCurrent ?? null;
 
   useEffect(() => {
     setProteinDraft(String(goals.proteinTarget));
@@ -80,35 +79,20 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
       {tab === "hoje" && (
         <div className="space-y-5">
           <Surface variant="featured" className="px-5 py-6">
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15">
-                <Utensils className="h-5 w-5 text-accent" />
-              </span>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground">Meta do dia</p>
-                <p className="text-2xl font-semibold tabular-nums tracking-tight">
-                  {todayTotals.proteinCurrent}
-                  <span className="ml-1 text-base font-normal text-muted-foreground">
-                    / {goals.proteinTarget}g proteína
-                  </span>
-                </p>
-                <Progress
-                  value={proteinPct}
-                  className="mt-3 h-1.5 bg-muted/80 [&>div]:bg-accent/90"
-                />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  <span className="tabular-nums">{todayTotals.caloriesCurrent}</span>
-                  {" / "}
-                  <span className="tabular-nums">{goals.caloriesTarget}</span> kcal
-                </p>
-                {proteinGap > 0 && state.todayWorkout.status === "completed" && (
-                  <p className="mt-2 text-xs text-accent">
-                    Pós-treino — faltam {proteinGap}g de proteína
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="mt-5 flex gap-2">
+            <ProteinProgressPanel
+              size="hero"
+              current={todayTotals.proteinCurrent}
+              target={goals.proteinTarget}
+              story={{
+                yesterdayProtein,
+                mealCountToday: todayMeals.length,
+              }}
+              showCalories={{
+                current: todayTotals.caloriesCurrent,
+                target: goals.caloriesTarget,
+              }}
+            />
+            <div className="mt-6 flex gap-2">
               <Button
                 className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
                 onClick={() => setSheetOpen(true)}
@@ -141,10 +125,12 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
                 {todayMeals.map((meal) => (
                   <Surface key={meal.id} className="flex items-center justify-between px-4 py-3">
                     <div>
-                      <p className="font-medium">{MEAL_TYPE_LABELS[meal.type]}</p>
+                      <div className="flex items-baseline gap-2">
+                        <p className="font-medium">{MEAL_TYPE_LABELS[meal.type]}</p>
+                        <p className="text-sm font-medium tabular-nums text-accent">+{meal.protein}g</p>
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        {MEAL_SIZE_ESTIMATES[meal.size].label} · {meal.protein}g P · {meal.calories}{" "}
-                        kcal
+                        {MEAL_SIZE_ESTIMATES[meal.size].label} · {meal.calories} kcal
                       </p>
                     </div>
                     <button
@@ -237,7 +223,7 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
                     >
                       <span>{MEAL_TYPE_LABELS[meal.type]}</span>
                       <span className="tabular-nums">
-                        {MEAL_SIZE_ESTIMATES[meal.size].label} · {meal.protein}g
+                        +{meal.protein}g · {MEAL_SIZE_ESTIMATES[meal.size].label}
                       </span>
                     </li>
                   ))}

@@ -19,6 +19,7 @@ export function buildExperienceContext(state: DayState): ExperienceContext | nul
     proteinCurrent: nutrition.proteinCurrent,
     proteinTarget: nutrition.proteinTarget,
     dayState,
+    timeOfDay: state.timeOfDay,
     workoutName: todayWorkout.name,
     workoutDurationMin: todayWorkout.durationMin,
     workoutsThisWeek,

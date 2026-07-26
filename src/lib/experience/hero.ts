@@ -1,15 +1,29 @@
+import { getHeroNutritionCopy } from "@/lib/domain/nutrition/progress-copy";
+
 import type { ExperienceContext, ExperienceIntent, HeroProjection } from "./types";
 
-/** Hero Engine — EP-01 + EP-02 Nutrition Journey */
+function nutritionHeroCopy(ctx: ExperienceContext, postWorkout: boolean) {
+  return getHeroNutritionCopy({
+    proteinGap: ctx.proteinGap,
+    proteinCurrent: ctx.proteinCurrent,
+    proteinTarget: ctx.proteinTarget,
+    timeOfDay: ctx.timeOfDay,
+    postWorkout,
+    postWorkoutMealRegistered: ctx.postWorkoutMealRegistered,
+  });
+}
+
+/** Hero Engine — EP-01 + Sprint 02.2.1 Nutrition Calibration */
 export function buildHeroProjection(
   primaryIntent: ExperienceIntent,
   ctx: ExperienceContext,
 ): HeroProjection {
   if (primaryIntent === "recover.postWorkout") {
+    const copy = nutritionHeroCopy(ctx, true);
     return {
       mode: "WORKOUT_DONE",
-      headline: "Treino concluído",
-      subheadline: null,
+      headline: copy.headline,
+      subheadline: copy.subheadline,
       observation: null,
       primaryAction: {
         type: "registerMeal",
@@ -19,25 +33,19 @@ export function buildHeroProjection(
   }
 
   if (primaryIntent === "close.protein") {
-    if (ctx.proteinGap > 0) {
-      return {
-        mode: "NUTRITION_PROGRESS",
-        headline: `${ctx.proteinGap}g restantes`,
-        subheadline: `${ctx.proteinCurrent}/${ctx.proteinTarget}g`,
-        observation: null,
-        primaryAction: {
-          type: "registerMeal",
-          label: "Registrar refeição",
-        },
-      };
-    }
-
+    const copy = nutritionHeroCopy(ctx, false);
     return {
       mode: "NUTRITION_PROGRESS",
-      headline: "Proteína em dia",
-      subheadline: null,
+      headline: copy.headline,
+      subheadline: copy.subheadline,
       observation: null,
-      primaryAction: null,
+      primaryAction:
+        ctx.proteinGap > 0
+          ? {
+              type: "registerMeal",
+              label: "Registrar refeição",
+            }
+          : null,
     };
   }
 
