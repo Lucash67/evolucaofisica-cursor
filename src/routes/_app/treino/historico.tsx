@@ -7,14 +7,14 @@ export const Route = createFileRoute("/_app/treino/historico")({
 });
 
 function HistoricoPage() {
-  const isSessoes = useRouterState({
-    select: (s) => s.location.pathname.endsWith("/sessoes"),
+  const historyLens = useRouterState({
+    select: (s) => {
+      const path = s.location.pathname;
+      if (path.endsWith("/sessoes")) return "sessoes" as const;
+      if (path.endsWith("/resumo")) return "resumo" as const;
+      return "evolucao" as const;
+    },
   });
 
-  return (
-    <TrainingWorkspaceScreen
-      tab="historico"
-      historyLens={isSessoes ? "sessoes" : "evolucao"}
-    />
-  );
+  return <TrainingWorkspaceScreen tab="historico" historyLens={historyLens} />;
 }

@@ -19,6 +19,7 @@ import { Route as AppTreinoHistoricoRouteImport } from './routes/_app/treino/his
 import { Route as AppTreinoSessaoRouteImport } from './routes/_app/treino/sessao'
 import { Route as AppTreinoBibliotecaIndexRouteImport } from './routes/_app/treino/biblioteca/index'
 import { Route as AppTreinoBibliotecaTemplateIdRouteImport } from './routes/_app/treino/biblioteca/$templateId'
+import { Route as AppTreinoHistoricoResumoRouteImport } from './routes/_app/treino/historico/resumo'
 import { Route as AppTreinoHistoricoSessoesRouteImport } from './routes/_app/treino/historico/sessoes'
 import { Route as AppTreinoProgramasIndexRouteImport } from './routes/_app/treino/programas/index'
 import { Route as AppTreinoWarmupTemplateIdRouteImport } from './routes/_app/treino/warmup/$templateId'
@@ -75,6 +76,12 @@ const AppTreinoBibliotecaTemplateIdRoute =
     path: '/treino/biblioteca/$templateId',
     getParentRoute: () => AppRoute,
   } as any)
+const AppTreinoHistoricoResumoRoute =
+  AppTreinoHistoricoResumoRouteImport.update({
+    id: '/resumo',
+    path: '/resumo',
+    getParentRoute: () => AppTreinoHistoricoRoute,
+  } as any)
 const AppTreinoHistoricoSessoesRoute =
   AppTreinoHistoricoSessoesRouteImport.update({
     id: '/sessoes',
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/treino/sessao': typeof AppTreinoSessaoRoute
   '/treino/': typeof AppTreinoIndexRoute
   '/treino/biblioteca/$templateId': typeof AppTreinoBibliotecaTemplateIdRoute
+  '/treino/historico/resumo': typeof AppTreinoHistoricoResumoRoute
   '/treino/historico/sessoes': typeof AppTreinoHistoricoSessoesRoute
   '/treino/warmup/$templateId': typeof AppTreinoWarmupTemplateIdRoute
   '/treino/biblioteca/': typeof AppTreinoBibliotecaIndexRoute
@@ -123,6 +131,7 @@ export interface FileRoutesByTo {
   '/treino/sessao': typeof AppTreinoSessaoRoute
   '/treino': typeof AppTreinoIndexRoute
   '/treino/biblioteca/$templateId': typeof AppTreinoBibliotecaTemplateIdRoute
+  '/treino/historico/resumo': typeof AppTreinoHistoricoResumoRoute
   '/treino/historico/sessoes': typeof AppTreinoHistoricoSessoesRoute
   '/treino/warmup/$templateId': typeof AppTreinoWarmupTemplateIdRoute
   '/treino/biblioteca': typeof AppTreinoBibliotecaIndexRoute
@@ -140,6 +149,7 @@ export interface FileRoutesById {
   '/_app/treino/sessao': typeof AppTreinoSessaoRoute
   '/_app/treino/': typeof AppTreinoIndexRoute
   '/_app/treino/biblioteca/$templateId': typeof AppTreinoBibliotecaTemplateIdRoute
+  '/_app/treino/historico/resumo': typeof AppTreinoHistoricoResumoRoute
   '/_app/treino/historico/sessoes': typeof AppTreinoHistoricoSessoesRoute
   '/_app/treino/warmup/$templateId': typeof AppTreinoWarmupTemplateIdRoute
   '/_app/treino/biblioteca/': typeof AppTreinoBibliotecaIndexRoute
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/treino/sessao'
     | '/treino/'
     | '/treino/biblioteca/$templateId'
+    | '/treino/historico/resumo'
     | '/treino/historico/sessoes'
     | '/treino/warmup/$templateId'
     | '/treino/biblioteca/'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/treino/sessao'
     | '/treino'
     | '/treino/biblioteca/$templateId'
+    | '/treino/historico/resumo'
     | '/treino/historico/sessoes'
     | '/treino/warmup/$templateId'
     | '/treino/biblioteca'
@@ -188,6 +200,7 @@ export interface FileRouteTypes {
     | '/_app/treino/sessao'
     | '/_app/treino/'
     | '/_app/treino/biblioteca/$templateId'
+    | '/_app/treino/historico/resumo'
     | '/_app/treino/historico/sessoes'
     | '/_app/treino/warmup/$templateId'
     | '/_app/treino/biblioteca/'
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTreinoBibliotecaTemplateIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/treino/historico/resumo': {
+      id: '/_app/treino/historico/resumo'
+      path: '/resumo'
+      fullPath: '/treino/historico/resumo'
+      preLoaderRoute: typeof AppTreinoHistoricoResumoRouteImport
+      parentRoute: typeof AppTreinoHistoricoRoute
+    }
     '/_app/treino/historico/sessoes': {
       id: '/_app/treino/historico/sessoes'
       path: '/sessoes'
@@ -303,10 +323,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppTreinoHistoricoRouteChildren {
+  AppTreinoHistoricoResumoRoute: typeof AppTreinoHistoricoResumoRoute
   AppTreinoHistoricoSessoesRoute: typeof AppTreinoHistoricoSessoesRoute
 }
 
 const AppTreinoHistoricoRouteChildren: AppTreinoHistoricoRouteChildren = {
+  AppTreinoHistoricoResumoRoute: AppTreinoHistoricoResumoRoute,
   AppTreinoHistoricoSessoesRoute: AppTreinoHistoricoSessoesRoute,
 }
 

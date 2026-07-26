@@ -1,20 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronRight, Dumbbell, Plus, TrendingUp } from "lucide-react";
 
+import { EvolutionSummaryPanel } from "@/components/training/evolution-summary-panel";
+import { WorkoutPickerSheet } from "@/components/training/workout-picker-sheet";
 import { Button } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { useDay } from "@/context/day-context";
 import { useTraining } from "@/context/training-context";
+import { getEvolutionSummary } from "@/lib/domain/training/evolution-summary";
 import { formatSetPerformance, hasMeaningfulSetData } from "@/lib/domain/training/format";
 import { getExerciseProgressions } from "@/lib/domain/training/progression";
+import {
+  getSelectedTemplateIdForToday,
+  setSelectedTemplateIdForToday,
+} from "@/lib/domain/training/selected-workout";
 import { formatDayKey, formatTomorrowDate } from "@/lib/domain/training/utils";
 import { cn } from "@/lib/utils";
 
 type Tab = "hoje" | "programas" | "historico";
-type HistoryLens = "evolucao" | "sessoes";
+type HistoryLens = "evolucao" | "sessoes" | "resumo";
 
 interface TrainingWorkspaceScreenProps {
   tab?: Tab;
@@ -28,17 +35,40 @@ export function TrainingWorkspaceScreen({
   const navigate = useNavigate();
   const { state } = useDay();
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const {
     programs,
+    templates,
     activeSession,
     history,
     findTemplateForWorkoutName,
+    getTemplate,
     getTemplatesForProgram,
     hasActiveSession,
   } = useTraining();
 
-  const todayTemplate = findTemplateForWorkoutName(state.todayWorkout.name);
+  const suggestedTemplate = findTemplateForWorkoutName(state.todayWorkout.name);
+  const suggestedTemplateId = suggestedTemplate?.id ?? null;
+
+  useEffect(() => {
+    setSelectedTemplateId(getSelectedTemplateIdForToday());
+  }, []);
+
+  const effectiveTemplateId = selectedTemplateId ?? suggestedTemplateId;
+  const todayTemplate = effectiveTemplateId ? getTemplate(effectiveTemplateId) : suggestedTemplate;
+  const swappedFromPlan =
+    selectedTemplateId != null &&
+    suggestedTemplateId != null &&
+    selectedTemplateId !== suggestedTemplateId;
   const todayTemplateEmpty = todayTemplate != null && todayTemplate.exercises.length === 0;
+
+  const handleSelectWorkout = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    setSelectedTemplateIdForToday(templateId);
+  };
+
+  const evolutionSummary = getEvolutionSummary(history);
 
   const goWarmup = (templateId: string) => {
     navigate({ to: "/treino/warmup/$templateId", params: { templateId } });
@@ -122,6 +152,15 @@ export function TrainingWorkspaceScreen({
                   <p className="mt-1 text-sm text-muted-foreground">
                     {todayTemplate.exercises.length} exercícios
                   </p>
+                  {swappedFromPlan && suggestedTemplate && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Plano sugeria{" "}
+                      <span className="font-medium text-foreground">{suggestedTemplate.name}</span>
+                    </p>
+                  )}
+                  {!swappedFromPlan && suggestedTemplateId === todayTemplate.id && (
+                    <p className="mt-1 text-xs text-accent">Sugerido pelo plano</p>
+                  )}
                 </div>
               </div>
               <Button
@@ -131,22 +170,37 @@ export function TrainingWorkspaceScreen({
               >
                 Iniciar sessão
               </Button>
-              <Link
-                to="/treino/programas"
-                className="mt-3 block text-center text-sm text-muted-foreground hover:text-accent"
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="mt-3 block w-full text-center text-sm text-muted-foreground hover:text-accent"
               >
-                Não é este treino?
-              </Link>
+                Trocar treino de hoje
+              </button>
             </Surface>
+          )}
+
+          {templates.length > 0 && (
+            <WorkoutPickerSheet
+              open={pickerOpen}
+              onOpenChange={setPickerOpen}
+              templates={templates}
+              suggestedTemplateId={suggestedTemplateId}
+              selectedTemplateId={effectiveTemplateId ?? templates[0]!.id}
+              onSelect={handleSelectWorkout}
+            />
           )}
 
           {!todayTemplate && !hasActiveSession && state.todayWorkout.status !== "completed" && (
             <Surface className="px-5 py-6">
               <p className="text-sm text-muted-foreground">
-                Nenhum treino encontrado para &ldquo;{state.todayWorkout.name}&rdquo;. Crie ou
-                ajuste no programa.
+                Nenhum treino encontrado para &ldquo;{state.todayWorkout.name}&rdquo;. Escolha um
+                treino do programa para hoje.
               </p>
-              <Button asChild className="mt-4 w-full" variant="outline">
+              <Button className="mt-4 w-full" onClick={() => setPickerOpen(true)}>
+                Escolher treino
+              </Button>
+              <Button asChild className="mt-2 w-full" variant="outline">
                 <Link to="/treino/programas">Ver programas</Link>
               </Button>
             </Surface>
@@ -176,7 +230,15 @@ export function TrainingWorkspaceScreen({
 
           {progressions.length > 0 && (
             <section>
-              <h3 className="mb-3 text-sm font-medium">Evolução recente</h3>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-medium">Evolução recente</h3>
+                <Link
+                  to="/treino/historico/resumo"
+                  className="text-xs text-muted-foreground hover:text-accent"
+                >
+                  Ver resumo
+                </Link>
+              </div>
               <div className="space-y-2">
                 {progressions.slice(0, 3).map((p) => (
                   <div
@@ -257,6 +319,15 @@ export function TrainingWorkspaceScreen({
               Evolução
             </Link>
             <Link
+              to="/treino/historico/resumo"
+              className={cn(
+                "flex-1 rounded-md py-1.5 text-center text-sm",
+                historyLens === "resumo" ? "bg-background font-medium shadow-sm" : "text-muted-foreground",
+              )}
+            >
+              Resumo
+            </Link>
+            <Link
               to="/treino/historico/sessoes"
               className={cn(
                 "flex-1 rounded-md py-1.5 text-center text-sm",
@@ -266,6 +337,8 @@ export function TrainingWorkspaceScreen({
               Sessões
             </Link>
           </div>
+
+          {historyLens === "resumo" && <EvolutionSummaryPanel summary={evolutionSummary} />}
 
           {historyLens === "evolucao" && (
             <div className="space-y-3">

@@ -23,6 +23,10 @@ function migrateStore(raw: Partial<TrainingStore>): TrainingStore {
   store.templates = store.templates.map((t) => ({
     ...t,
     programId: t.programId ?? store.programs[0].id,
+    exercises: t.exercises.map((ex) => ({
+      ...ex,
+      sets: ex.sets.length === 3 ? ex.sets.slice(0, 2) : ex.sets,
+    })),
   }));
 
   store.activeSession = store.activeSession ?? null;
