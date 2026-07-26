@@ -23,6 +23,14 @@ interface DayContextValue {
   workoutClosureSeen: boolean;
   mealJustRegistered: boolean;
   registerMeal: (type: MealType, size: MealSize) => void;
+  applyMealRegistration: (type: MealType, size: MealSize) => void;
+  hydrateNutrition: (snapshot: {
+    proteinTarget: number;
+    caloriesTarget: number;
+    proteinCurrent: number;
+    caloriesCurrent: number;
+    registeredMeals: MealType[];
+  }) => void;
   completeWorkout: () => void;
   completeWorkoutAfterClosure: () => void;
   acknowledgeHeroExperience: () => void;
@@ -51,7 +59,7 @@ export function DayProvider({ children }: { children: ReactNode }) {
   const [workoutClosureSeen, setWorkoutClosureSeen] = useState(false);
   const [mealJustRegistered, setMealJustRegistered] = useState(false);
 
-  const registerMeal = useCallback((type: MealType, size: MealSize) => {
+  const applyMealRegistration = useCallback((type: MealType, size: MealSize) => {
     const estimate = MEAL_SIZE_ESTIMATES[size];
     setState((prev) => {
       if (prev.todayWorkout.status === "completed") {
@@ -72,6 +80,30 @@ export function DayProvider({ children }: { children: ReactNode }) {
       };
     });
   }, []);
+
+  const registerMeal = applyMealRegistration;
+
+  const hydrateNutrition = useCallback(
+    (snapshot: {
+      proteinTarget: number;
+      caloriesTarget: number;
+      proteinCurrent: number;
+      caloriesCurrent: number;
+      registeredMeals: MealType[];
+    }) => {
+      setState((prev) => ({
+        ...prev,
+        registeredMeals: snapshot.registeredMeals,
+        nutrition: {
+          proteinTarget: snapshot.proteinTarget,
+          caloriesTarget: snapshot.caloriesTarget,
+          proteinCurrent: snapshot.proteinCurrent,
+          caloriesCurrent: snapshot.caloriesCurrent,
+        },
+      }));
+    },
+    [],
+  );
 
   const completeWorkout = useCallback(() => {
     // EP-01 Event: workout.completed (state transition drives computeRenderPlan)
@@ -177,6 +209,8 @@ export function DayProvider({ children }: { children: ReactNode }) {
       workoutClosureSeen,
       mealJustRegistered,
       registerMeal,
+      applyMealRegistration,
+      hydrateNutrition,
       completeWorkout,
       completeWorkoutAfterClosure,
       acknowledgeHeroExperience,
@@ -194,6 +228,8 @@ export function DayProvider({ children }: { children: ReactNode }) {
       workoutClosureSeen,
       mealJustRegistered,
       registerMeal,
+      applyMealRegistration,
+      hydrateNutrition,
       completeWorkout,
       completeWorkoutAfterClosure,
       acknowledgeHeroExperience,

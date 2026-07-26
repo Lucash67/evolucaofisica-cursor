@@ -13,6 +13,9 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
 import { Route as AppProgressoRouteImport } from './routes/_app/progresso'
+import { Route as AppNutricaoIndexRouteImport } from './routes/_app/nutricao/index'
+import { Route as AppNutricaoHistoricoRouteImport } from './routes/_app/nutricao/historico'
+import { Route as AppNutricaoMetasRouteImport } from './routes/_app/nutricao/metas'
 import { Route as AppTreinoIndexRouteImport } from './routes/_app/treino/index'
 import { Route as AppTreinoFechamentoRouteImport } from './routes/_app/treino/fechamento'
 import { Route as AppTreinoHistoricoRouteImport } from './routes/_app/treino/historico'
@@ -42,6 +45,21 @@ const AppPerfilRoute = AppPerfilRouteImport.update({
 const AppProgressoRoute = AppProgressoRouteImport.update({
   id: '/progresso',
   path: '/progresso',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNutricaoIndexRoute = AppNutricaoIndexRouteImport.update({
+  id: '/nutricao/',
+  path: '/nutricao/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNutricaoHistoricoRoute = AppNutricaoHistoricoRouteImport.update({
+  id: '/nutricao/historico',
+  path: '/nutricao/historico',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNutricaoMetasRoute = AppNutricaoMetasRouteImport.update({
+  id: '/nutricao/metas',
+  path: '/nutricao/metas',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTreinoIndexRoute = AppTreinoIndexRouteImport.update({
@@ -110,9 +128,12 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/perfil': typeof AppPerfilRoute
   '/progresso': typeof AppProgressoRoute
+  '/nutricao/historico': typeof AppNutricaoHistoricoRoute
+  '/nutricao/metas': typeof AppNutricaoMetasRoute
   '/treino/fechamento': typeof AppTreinoFechamentoRoute
   '/treino/historico': typeof AppTreinoHistoricoRouteWithChildren
   '/treino/sessao': typeof AppTreinoSessaoRoute
+  '/nutricao/': typeof AppNutricaoIndexRoute
   '/treino/': typeof AppTreinoIndexRoute
   '/treino/biblioteca/$templateId': typeof AppTreinoBibliotecaTemplateIdRoute
   '/treino/historico/resumo': typeof AppTreinoHistoricoResumoRoute
@@ -126,9 +147,12 @@ export interface FileRoutesByTo {
   '/perfil': typeof AppPerfilRoute
   '/progresso': typeof AppProgressoRoute
   '/': typeof AppIndexRoute
+  '/nutricao/historico': typeof AppNutricaoHistoricoRoute
+  '/nutricao/metas': typeof AppNutricaoMetasRoute
   '/treino/fechamento': typeof AppTreinoFechamentoRoute
   '/treino/historico': typeof AppTreinoHistoricoRouteWithChildren
   '/treino/sessao': typeof AppTreinoSessaoRoute
+  '/nutricao': typeof AppNutricaoIndexRoute
   '/treino': typeof AppTreinoIndexRoute
   '/treino/biblioteca/$templateId': typeof AppTreinoBibliotecaTemplateIdRoute
   '/treino/historico/resumo': typeof AppTreinoHistoricoResumoRoute
@@ -144,9 +168,12 @@ export interface FileRoutesById {
   '/_app/perfil': typeof AppPerfilRoute
   '/_app/progresso': typeof AppProgressoRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/nutricao/historico': typeof AppNutricaoHistoricoRoute
+  '/_app/nutricao/metas': typeof AppNutricaoMetasRoute
   '/_app/treino/fechamento': typeof AppTreinoFechamentoRoute
   '/_app/treino/historico': typeof AppTreinoHistoricoRouteWithChildren
   '/_app/treino/sessao': typeof AppTreinoSessaoRoute
+  '/_app/nutricao/': typeof AppNutricaoIndexRoute
   '/_app/treino/': typeof AppTreinoIndexRoute
   '/_app/treino/biblioteca/$templateId': typeof AppTreinoBibliotecaTemplateIdRoute
   '/_app/treino/historico/resumo': typeof AppTreinoHistoricoResumoRoute
@@ -162,9 +189,12 @@ export interface FileRouteTypes {
     | '/'
     | '/perfil'
     | '/progresso'
+    | '/nutricao/historico'
+    | '/nutricao/metas'
     | '/treino/fechamento'
     | '/treino/historico'
     | '/treino/sessao'
+    | '/nutricao/'
     | '/treino/'
     | '/treino/biblioteca/$templateId'
     | '/treino/historico/resumo'
@@ -178,9 +208,12 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/progresso'
     | '/'
+    | '/nutricao/historico'
+    | '/nutricao/metas'
     | '/treino/fechamento'
     | '/treino/historico'
     | '/treino/sessao'
+    | '/nutricao'
     | '/treino'
     | '/treino/biblioteca/$templateId'
     | '/treino/historico/resumo'
@@ -195,9 +228,12 @@ export interface FileRouteTypes {
     | '/_app/perfil'
     | '/_app/progresso'
     | '/_app/'
+    | '/_app/nutricao/historico'
+    | '/_app/nutricao/metas'
     | '/_app/treino/fechamento'
     | '/_app/treino/historico'
     | '/_app/treino/sessao'
+    | '/_app/nutricao/'
     | '/_app/treino/'
     | '/_app/treino/biblioteca/$templateId'
     | '/_app/treino/historico/resumo'
@@ -240,6 +276,27 @@ declare module '@tanstack/react-router' {
       path: '/progresso'
       fullPath: '/progresso'
       preLoaderRoute: typeof AppProgressoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/nutricao/': {
+      id: '/_app/nutricao/'
+      path: '/nutricao'
+      fullPath: '/nutricao/'
+      preLoaderRoute: typeof AppNutricaoIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/nutricao/historico': {
+      id: '/_app/nutricao/historico'
+      path: '/nutricao/historico'
+      fullPath: '/nutricao/historico'
+      preLoaderRoute: typeof AppNutricaoHistoricoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/nutricao/metas': {
+      id: '/_app/nutricao/metas'
+      path: '/nutricao/metas'
+      fullPath: '/nutricao/metas'
+      preLoaderRoute: typeof AppNutricaoMetasRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/treino/': {
@@ -339,9 +396,12 @@ interface AppRouteChildren {
   AppPerfilRoute: typeof AppPerfilRoute
   AppProgressoRoute: typeof AppProgressoRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppNutricaoHistoricoRoute: typeof AppNutricaoHistoricoRoute
+  AppNutricaoMetasRoute: typeof AppNutricaoMetasRoute
   AppTreinoFechamentoRoute: typeof AppTreinoFechamentoRoute
   AppTreinoHistoricoRoute: typeof AppTreinoHistoricoRouteWithChildren
   AppTreinoSessaoRoute: typeof AppTreinoSessaoRoute
+  AppNutricaoIndexRoute: typeof AppNutricaoIndexRoute
   AppTreinoIndexRoute: typeof AppTreinoIndexRoute
   AppTreinoBibliotecaTemplateIdRoute: typeof AppTreinoBibliotecaTemplateIdRoute
   AppTreinoWarmupTemplateIdRoute: typeof AppTreinoWarmupTemplateIdRoute
@@ -354,9 +414,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppPerfilRoute: AppPerfilRoute,
   AppProgressoRoute: AppProgressoRoute,
   AppIndexRoute: AppIndexRoute,
+  AppNutricaoHistoricoRoute: AppNutricaoHistoricoRoute,
+  AppNutricaoMetasRoute: AppNutricaoMetasRoute,
   AppTreinoFechamentoRoute: AppTreinoFechamentoRoute,
   AppTreinoHistoricoRoute: AppTreinoHistoricoRouteWithChildren,
   AppTreinoSessaoRoute: AppTreinoSessaoRoute,
+  AppNutricaoIndexRoute: AppNutricaoIndexRoute,
   AppTreinoIndexRoute: AppTreinoIndexRoute,
   AppTreinoBibliotecaTemplateIdRoute: AppTreinoBibliotecaTemplateIdRoute,
   AppTreinoWarmupTemplateIdRoute: AppTreinoWarmupTemplateIdRoute,

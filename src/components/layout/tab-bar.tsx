@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Dumbbell, Home, User } from "lucide-react";
+import { Dumbbell, Home, User, UtensilsCrossed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { to: "/", label: "Seu Dia", icon: Home },
   { to: "/treino", label: "Treino", icon: Dumbbell },
+  { to: "/nutricao", label: "Nutrição", icon: UtensilsCrossed },
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
@@ -21,7 +22,10 @@ export function TabBar() {
     >
       <div className="mx-auto flex h-[52px] max-w-lg items-stretch px-1 pb-[env(safe-area-inset-bottom)]">
         {tabs.map(({ to, label, icon: Icon }) => {
-          const active = pathname === to || (to === "/treino" && pathname.startsWith("/treino"));
+          const active =
+            pathname === to ||
+            (to === "/treino" && pathname.startsWith("/treino")) ||
+            (to === "/nutricao" && pathname.startsWith("/nutricao"));
           return (
             <Link
               key={to}

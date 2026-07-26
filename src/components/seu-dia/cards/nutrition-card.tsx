@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { Progress } from "@/components/ui/progress";
@@ -29,7 +30,9 @@ export function NutritionCard({
   return (
     <div className={cn(!embedded && "contents", className)}>
       <div className="flex items-start justify-between gap-4">
-        <SurfaceLabel>Proteína</SurfaceLabel>
+        <Link to="/nutricao" className="group">
+          <SurfaceLabel className="group-hover:text-accent">Proteína</SurfaceLabel>
+        </Link>
         <button
           type="button"
           onClick={onRegister}
@@ -62,6 +65,13 @@ export function NutritionCard({
           )}
         </div>
       </div>
+
+      <Link
+        to="/nutricao"
+        className="mt-3 inline-block text-xs text-muted-foreground hover:text-accent"
+      >
+        Ver nutrição
+      </Link>
     </div>
   );
 }

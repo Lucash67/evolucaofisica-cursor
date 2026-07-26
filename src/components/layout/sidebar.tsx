@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, Dumbbell, Home, User } from "lucide-react";
+import { CalendarDays, Dumbbell, Home, User, UtensilsCrossed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", label: "Seu Dia", icon: Home },
   { to: "/treino", label: "Treino", icon: Dumbbell },
+  { to: "/nutricao", label: "Nutrição", icon: UtensilsCrossed },
   { to: "/progresso", label: "Progresso", icon: CalendarDays },
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
@@ -26,7 +27,10 @@ export function Sidebar() {
 
       <nav className="flex flex-1 flex-col gap-0.5 px-2 pt-1">
         {navItems.map(({ to, label, icon: Icon }) => {
-          const active = pathname === to || (to === "/treino" && pathname.startsWith("/treino"));
+          const active =
+            pathname === to ||
+            (to === "/treino" && pathname.startsWith("/treino")) ||
+            (to === "/nutricao" && pathname.startsWith("/nutricao"));
           return (
             <Link
               key={to}
