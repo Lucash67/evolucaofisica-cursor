@@ -3,10 +3,11 @@
 
 ---
 
-> **Status:** Documento de experiência — Sprint 02.2 Design  
+> **Status:** Constituição do módulo — Sprint 02.2 Design (congelado pós-revisão estratégica)  
 > **Escopo:** Filosofia, jornada, modelo mental, CEE, motion. Zero implementação.  
 > **Missão da Sprint:** Descobrir qual deve ser a **personalidade e a experiência** da Nutrição — tão distinta quanto o Treino, **sem reutilizar soluções por simetria**.  
-> **Baseline técnico:** Implementação `b1d6a6a` (MVP técnico) — validada, não descartada.
+> **Baseline técnico:** Implementação `b1d6a6a` (MVP técnico) — validada, não descartada.  
+> **Papel deste documento:** Constituição do módulo Nutrição — filtro para toda decisão futura, como o Training Experience Pass foi para o Treino.
 
 **Referências:** `PRODUCT_BIBLE.md` · `MVP_LOCK.md` · `EXPERIENCE_BLUEPRINT.md` · `REAL_USER_WORKFLOW.md` · `SPRINT_02_1_TRAINING_WORKSPACE_REVIEW.md`
 
@@ -63,6 +64,26 @@ Nossa resposta:
 
 ---
 
+# North Star — filtro de todas as decisões
+
+No Treino, a North Star ficou clara:
+
+> *"A interface desaparece durante a sessão."*
+
+Na Nutrição, a frase equivalente é:
+
+> **"O sucesso do módulo é quando registrar uma refeição leva menos tempo do que decidir não registrá-la."**
+
+Toda feature, tela ou refinamento futuro deve passar por este filtro:
+
+- Isso **acelera** a captura ou **atrasa**?
+- Isso orienta para **frente** (gap) ou para **trás** (log)?
+- Isso aumenta **consistência** ou **precisão vazia**?
+
+Se a resposta atrasa, olha para trás ou exige precisão desnecessária — **não entra**.
+
+---
+
 # 1. Personalidade do módulo
 
 ### 1.1 Identidade em uma frase
@@ -87,6 +108,23 @@ Treino e Nutrição **compartilham** a filosofia do produto (*Home orienta. Work
 
 ### 1.3 O que somos vs. o que não somos
 
+**Somos:**
+
+- Um **copiloto** para atingir metas nutricionais — especialmente proteína.
+- Um sistema **orientado por progresso** ("faltam Xg"), não por histórico.
+- Uma **conversa distribuída** ao longo do dia — Hero, Surface, confirmação inline.
+- A continuação natural da **recuperação pós-treino**.
+- Um módulo onde **consistência** importa mais que precisão.
+
+**Não somos:**
+
+- Um contador completo de calorias.
+- Um banco de milhões de alimentos.
+- Um substituto do MyFitnessPal.
+- Um diário alimentar detalhado.
+- Uma planilha bonita de macros.
+- Um módulo que exige disciplina contábil para funcionar.
+
 | Somos | Não somos |
 |-------|-----------|
 | Bússola proteica do dia | MyFitnessPal |
@@ -94,6 +132,35 @@ Treino e Nutrição **compartilham** a filosofia do produto (*Home orienta. Work
 | Progresso orientado ("faltam Xg") | Histórico orientado ("você comeu Y") |
 | Consistência ao longo do dia | Precisão por grama |
 | Continuação da recuperação pós-treino | Módulo paralelo desconectado |
+
+---
+
+# 1.4 Fricção progressiva
+
+Quanto mais informação o usuário **quiser** registrar, mais opções aparecem. **Nunca o contrário.**
+
+O caminho padrão é sempre o mais curto. Detalhe é opt-in, nunca gate.
+
+```
+MVP (Sprint 02.2)
+    Registrar: Café → Médio          ← 2 toques, zero teclado
+
+Refinamento
+    Ajustar proteína manualmente     ← opt-in no sheet
+
+V1
+    Adicionar observação             ← colapsado, opcional
+
+V1+
+    Foto da refeição                 ← opt-in explícito
+
+V2
+    Macro manual por item            ← fora do fluxo diário
+```
+
+**Regra:** o usuário nunca vê busca de alimentos, tabela nutricional ou formulário longo **antes** de completar a captura mínima.
+
+**Teste:** se um usuário apressado só der 2 toques, o produto ainda funciona perfeitamente.
 
 ---
 
@@ -121,7 +188,7 @@ Objetivo do dia
 | **Objetivo do dia** | "Para onde estou indo?" | Seu Dia — barra, Hero, Surface |
 | **Captura** | "Acabei de comer — quanto isso conta?" | Sheet (2 toques), nunca deep link |
 | **Progresso** | "Onde estou agora?" | Animação imediata + número |
-| **Próximo passo** | "O que me aproxima da meta?" | Sugestão contextual, copy Hero |
+| **Próximo passo** | "Quanto falta? O que me aproxima?" | Copy de direção — **sem alimentos específicos no MVP** |
 
 ### 2.3 Exemplo concreto (fluxo vivido)
 
@@ -135,11 +202,20 @@ Proteína
       ↓
 Faltam 50 g            ← Objetivo reorientado
       ↓
-Sugestão:
-iogurte + whey       ← Próximo passo
+Uma refeição rica
+em proteína pode
+ajudar.              ← Próximo passo (MVP — copy genérica)
 ```
 
-O usuário **nunca** precisou pensar "estou registrando um almoço médio". Ele pensou: *"Quanto falta? O que me aproxima?"*
+O usuário **nunca** precisou pensar "estou registrando um almoço médio". Ele pensou: *"Quanto falta?"*
+
+**MVP — Próximo passo:** apenas copy de direção. Exemplos permitidos:
+
+- "Faltam 50g de proteína hoje."
+- "Uma refeição rica em proteína pode ajudar você a atingir a meta."
+- "Quase lá — faltam 18g."
+
+**Fora do MVP:** sugestões de alimentos específicos ("iogurte + whey"). Entram em fase futura quando houver contexto suficiente (preferências, restrições, histórico, objetivo) para serem **realmente úteis** — não genéricas e arriscadas.
 
 ### 2.4 Hierarquia interna (engine)
 
@@ -166,7 +242,7 @@ Histórico (Consistência — secundário, modo Revisar)
 | **Objetivo** | "160g hoje. Faltam 50g." | Mostrar só o que já comeu |
 | **Captura** | Incremento rápido | Formulário longo |
 | **Progresso** | Barra/número animam para frente | Toast genérico "salvo" |
-| **Próximo passo** | Sugestão acionável ou copy Hero | Silêncio pós-registro |
+| **Próximo passo** | Copy de direção (gap + orientação genérica) | Silêncio ou alimento específico |
 
 **Modo Revisar** (Workspace `/nutricao`) existe para quem quer **olhar a semana** — não para o loop diário.
 
@@ -274,8 +350,8 @@ Após Captura, **nunca silêncio**. Sempre Progresso visível.
 | Camada | O quê | Quando |
 |--------|-------|--------|
 | **P0 — Barra** | Anima 78→110 | Toda captura |
-| **P1 — Gap** | "Faltam 50g" | Toda captura, 1,5s |
-| **P2 — Próximo passo** | "iogurte + whey (~25g)" | Se gap > 30g e tarde |
+| **P1 — Gap** | "Faltam 50g de proteína hoje." | Toda captura, 1,5s |
+| **P2 — Próximo passo** | Copy genérica de direção | Se gap significativo e tarde |
 | **P3 — Hero** | Threshold 75% / EP-02 | 1–2×/dia max |
 
 ### 6.2 Wireframe — Progresso + Próximo passo
@@ -285,25 +361,29 @@ Após Captura, **nunca silêncio**. Sempre Progresso visível.
 │              +32g                    │
 │                                      │
 │         110 / 160 g                  │
-│         Faltam 50g                   │
 │                                      │
-│  Próximo passo                       │
-│  iogurte + whey · ~25g P             │
+│  Faltam 50g de proteína hoje.        │
+│                                      │
+│  Uma refeição rica em proteína       │
+│  pode ajudar você a atingir a meta.  │
 │                                      │
 │         (fecha em 2s)                │
 └──────────────────────────────────────┘
 ```
 
-**Sugestões no MVP:** presets textuais fixos por gap — não IA, não busca. Exemplos:
+**MVP — copy permitida por gap:**
 
-| Gap restante | Sugestão |
-|--------------|----------|
-| 40–60g | iogurte + whey |
-| 20–39g | lanche proteico / atum |
-| 10–19g | shake pequeno |
-| <10g | "Quase lá — qualquer fonte leve" |
+| Gap restante | Copy (exemplo) |
+|--------------|----------------|
+| >40g | "Faltam Xg de proteína hoje." + orientação genérica |
+| 20–40g | "Faltam Xg. Uma refeição rica em proteína pode ajudar." |
+| 10–19g | "Quase lá — faltam Xg." |
+| <10g | "Faltam apenas Xg." |
+| 0g | "Proteína do dia completa." |
 
-Copy sempre **orientadora**, nunca prescritiva ("você deve").
+Copy sempre **orientadora**, nunca prescritiva ("você deve comer X").
+
+**V2+ (com contexto):** sugestões personalizadas de alimentos — preferências, restrições, padrões do usuário. **Não MVP.**
 
 ### 6.3 Motion
 
@@ -339,8 +419,8 @@ O MVP técnico construiu `/nutricao` como centro. **Este documento reposiciona:*
 │         Faltam 50g                   │
 │         ████████████████░░░░         │
 │                                      │
-│  Próximo passo                       │
-│  iogurte + whey                      │
+│  Uma refeição rica em proteína       │
+│  pode ajudar.                        │
 │                                      │
 │  [ + Registrar ]                     │
 │                                      │
@@ -375,9 +455,9 @@ Nutrição: Hero ("Hora da proteína.")
               ↓
 Captura contextual (1 toque)
               ↓
-Progresso ("110g. Faltam 50g.")
+Progresso ("110g. Faltam 50g de proteína hoje.")
               ↓
-Próximo passo ("iogurte + whey")
+Próximo passo (copy genérica de direção)
               ↓
 Seu Dia: treino colapsado, objetivo proteico em evidência
 ```
@@ -393,7 +473,7 @@ Treino **termina** com recuperação. Nutrição **continua** a história — se
 | Manhã, treino planejado | "160g hoje" discreto | Treino | Disponível, não destacada |
 | Pós-treino | Gap em evidência | "Hora da proteína" | Contextual, 1 toque |
 | Tarde 50–75% | "Faltam Xg" | Threshold copy | Sheet padrão |
-| Noite <70% | Urgência calma | "Faltam 18g" | Sheet + sugestão |
+| Noite <70% | Urgência calma | "Faltam 18g" | Sheet padrão |
 | Meta 100% | Barra completa | "Proteína completa" | Opcional, sem pressão |
 | Zero registros | "160g hoje" | Silêncio | Zero culpa |
 
@@ -408,8 +488,8 @@ Treino **termina** com recuperação. Nutrição **continua** a história — se
 | Sync CEE | ✅ Manter — thresholds Hero |
 | Sheet 2 passos | 🔄 Tipo secundário; proteína primeiro |
 | Workspace central | 🔄 Reorientar: objetivo no topo, lista secundária |
-| Pós-registro | ❌ → Progresso + Próximo passo |
-| Sugestões | ❌ → Presets textuais por gap |
+| Pós-registro | ❌ → Progresso + copy de direção (sem alimentos) |
+| Sugestões alimentares | ❌ V2+ — fora do MVP |
 | Hero contínuo | 🔄 Copy por momento do dia |
 | Histórico lista | 🔄 Consistência semanal |
 | Confirmação EP-02 | 🔄 Só pós-treino / threshold |
@@ -418,7 +498,30 @@ Treino **termina** com recuperação. Nutrição **continua** a história — se
 
 ---
 
-# 11. O que descartamos (e por quê)
+# 11. Decisões que rejeitaremos
+
+Lista explícita — protege identidade contra scope creep:
+
+| Decisão | Status | Por quê |
+|---------|--------|---------|
+| Scanner de código de barras | ❌ MVP | Fricção + identidade MyFitnessPal |
+| Busca gigante de alimentos | ❌ MVP | Mata ≤10s; viola North Star |
+| Cadastro obrigatório de alimentos | ❌ Sempre | Contabilidade, não copiloto |
+| Tabelas nutricionais complexas | ❌ MVP | Olhar para trás; precisão falsa |
+| Diário em formato de planilha | ❌ Sempre | Notion pattern — rejeitado |
+| Sugestão de alimentos específicos | ❌ MVP | Preferências, restrições, precisão — V2+ |
+| Hero nutricional a cada refeição | ❌ Sempre | Cansa; viola conversa contínua |
+| Warm-up / Fechamento clone do Treino | ❌ Sempre | Simetria vazia |
+| Workspace como centro de captura | ❌ Sempre | MyFitnessPal pattern |
+| Gráficos de pizza de macros | ❌ MVP | Dashboard, não bússola |
+| Registro obrigatório de 3 refeições | ❌ Sempre | 1 registro > 0 |
+| Culpa por meta não atingida | ❌ Sempre | Filosofia do produto |
+
+**Como usar:** qualquer proposta de feature deve ser comparada a esta tabela antes de entrar no roadmap.
+
+---
+
+# 12. O que descartamos (contexto)
 
 | Ideia | Por quê fora |
 |-------|--------------|
@@ -429,10 +532,11 @@ Treino **termina** com recuperação. Nutrição **continua** a história — se
 | Busca de alimentos | MVP Lock + fricção |
 | Precisão gramatical | Falsa precisão mata aderência |
 | Gráficos de macros | Dashboard, não bússola |
+| Alimentos específicos sugeridos | MVP — falta contexto do usuário |
 
 ---
 
-# 12. Princípios permanentes
+# 13. Princípios permanentes
 
 1. **Pergunta certa:** manter proteína no dia — não registrar refeições.
 2. **Olhar para frente:** "Faltam Xg" > "Você comeu Y".
@@ -441,13 +545,15 @@ Treino **termina** com recuperação. Nutrição **continua** a história — se
 5. **Hero = conversa contínua** — calma, por momento, não por refeição.
 6. **Anti-simetria** com Treino — ritmos diferentes.
 7. **≤10 segundos** por captura.
-8. **Sugestão > silêncio** após captura.
+8. **Direção > silêncio** após captura — copy genérica, não alimento específico (MVP).
 9. **Consistência > precisão.**
 10. **Treino manda de manhã; proteína manda de tarde.**
+11. **Fricção progressiva** — detalhe é opt-in.
+12. **North Star** — registrar deve ser mais rápido que desistir.
 
 ---
 
-# 13. Checklist de validação
+# 14. Checklist de validação
 
 Antes do Experience Refinement:
 
@@ -456,25 +562,45 @@ Antes do Experience Refinement:
 - [ ] Workspace parece **secundário** — Home é o centro
 - [ ] Hero fala diferente de manhã, tarde e noite
 - [ ] Pós-treino conecta com Treino sem copiar Fechamento
-- [ ] Sugestões ("iogurte + whey") parecem úteis, não prescritivas
+- [ ] Próximo passo usa **copy genérica** — sem alimentos específicos no MVP
+- [ ] North Star passa no filtro de qualquer feature proposta
+- [ ] Fricção progressiva respeitada — captura mínima sempre disponível
 - [ ] Não parece MyFitnessPal
 - [ ] Não parece Treino disfarçado
 - [ ] Quero abrir 5×/dia porque **vejo progresso**, não porque "preciso logar"
 
 ---
 
-# 14. Próximo passo
+# 15. Próximo passo
 
-1. **Você valida** este Experience Pass — especialmente identidade e anti-simetria.
+1. **Documento congelado** — constituição do módulo Nutrição.
 2. **Experience Refinement** — ordem sugerida:
-   - Progresso + Próximo passo pós-captura
+   - Progresso + copy de direção pós-captura (sem alimentos)
    - Reorientar card e Workspace (objetivo primeiro)
    - Hero copy por momento + thresholds
    - Captura pós-treino 1-toque
    - Histórico → Consistência
-3. **Sprint Review 02.2** — após refinamento, documento espelhando `SPRINT_02_1_TRAINING_WORKSPACE_REVIEW.md`.
+3. **Sprint Review 02.2** — após refinamento.
 
 ---
 
-*Nutrition Experience Pass v2 — Sprint 02.2 Design · Evolução Física*  
-*Processo: Discovery → Experience Pass → MVP Técnico → Refinement → Review*
+# Product Playbook
+
+Este documento faz parte do **Product Playbook** do Evolução Física — a disciplina compartilhada entre módulos:
+
+```
+Discovery → Experience Pass → MVP Técnico → Refinement → Sprint Review
+```
+
+Quando Treino, Nutrição, Recuperação e os próximos domínios seguirem este ciclo, o produto mantém **identidade consistente** — não um conjunto de CRUDs desconexos.
+
+| Módulo | Experience Pass | Sprint Review |
+|--------|-----------------|---------------|
+| Treino | Training Experience Pass | `SPRINT_02_1_TRAINING_WORKSPACE_REVIEW.md` |
+| Nutrição | **Este documento** | *(após Refinement)* |
+| Recuperação | *(futuro)* | *(futuro)* |
+
+---
+
+*Nutrition Experience Pass v3 — Constituição do módulo · Sprint 02.2 Design · Evolução Física*  
+*Congelado pós-revisão estratégica · Julho 2026*
