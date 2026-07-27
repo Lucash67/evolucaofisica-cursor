@@ -7,23 +7,28 @@ import {
   type ReactNode,
 } from "react";
 
-import { MEAL_SIZE_ESTIMATES } from "@/lib/domain/meal-presets";
 import { createScenarioState } from "@/lib/domain/scenarios";
 import type {
   DayState,
   DemoScenario,
-  MealSize,
   MealType,
   SleepQuality,
 } from "@/lib/domain/types";
+
+export interface MealMacros {
+  protein: number;
+  calories: number;
+  carbs: number;
+  fat: number;
+}
 
 interface DayContextValue {
   state: DayState;
   workoutJustCompleted: boolean;
   workoutClosureSeen: boolean;
   mealJustRegistered: boolean;
-  registerMeal: (type: MealType, size: MealSize) => void;
-  applyMealRegistration: (type: MealType, size: MealSize) => void;
+  registerMeal: (type: MealType, macros: MealMacros) => void;
+  applyMealRegistration: (type: MealType, macros: MealMacros) => void;
   hydrateNutrition: (snapshot: {
     proteinTarget: number;
     caloriesTarget: number;
@@ -59,8 +64,7 @@ export function DayProvider({ children }: { children: ReactNode }) {
   const [workoutClosureSeen, setWorkoutClosureSeen] = useState(false);
   const [mealJustRegistered, setMealJustRegistered] = useState(false);
 
-  const applyMealRegistration = useCallback((type: MealType, size: MealSize) => {
-    const estimate = MEAL_SIZE_ESTIMATES[size];
+  const applyMealRegistration = useCallback((type: MealType, macros: MealMacros) => {
     setState((prev) => {
       if (prev.todayWorkout.status === "completed") {
         setMealJustRegistered(true);
@@ -74,8 +78,8 @@ export function DayProvider({ children }: { children: ReactNode }) {
           prev.postWorkoutMealRegistered || prev.todayWorkout.status === "completed",
         nutrition: {
           ...prev.nutrition,
-          proteinCurrent: prev.nutrition.proteinCurrent + estimate.protein,
-          caloriesCurrent: prev.nutrition.caloriesCurrent + estimate.calories,
+          proteinCurrent: prev.nutrition.proteinCurrent + macros.protein,
+          caloriesCurrent: prev.nutrition.caloriesCurrent + macros.calories,
         },
       };
     });

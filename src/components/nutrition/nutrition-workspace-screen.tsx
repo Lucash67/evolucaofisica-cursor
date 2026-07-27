@@ -6,6 +6,7 @@ import { Plus, Repeat, Trash2 } from "lucide-react";
 import { MacroDistribution } from "@/components/nutrition/macro-distribution";
 import { MealRegisterSheet } from "@/components/nutrition/meal-register-sheet";
 import { NutritionDashboardPanel } from "@/components/nutrition/nutrition-dashboard-panel";
+import { NutritionDayHeader } from "@/components/nutrition/nutrition-day-header";
 import { NutritionInsightsStrip } from "@/components/nutrition/nutrition-insights-strip";
 import {
   NutritionWorkspaceNav,
@@ -17,6 +18,7 @@ import { Surface } from "@/components/ui/surface";
 import { useDay } from "@/context/day-context";
 import { useNutrition } from "@/context/nutrition-context";
 import { MEAL_SIZE_ESTIMATES, MEAL_TYPE_LABELS } from "@/lib/domain/meal-presets";
+import { formatMealTime } from "@/lib/domain/nutrition/date-utils";
 import { getNutritionInsights } from "@/lib/domain/nutrition/insights";
 import { buildMacroProgress } from "@/lib/domain/nutrition/macro-progress";
 import { getYesterdayDayKey } from "@/lib/domain/nutrition/progress-copy";
@@ -34,8 +36,10 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
   const { state } = useDay();
   const {
     goals,
-    todayMeals,
-    todayTotals,
+    selectedDayMeals,
+    selectedDayTotals,
+    selectedDayKey,
+    isSelectedToday,
     historyByDay,
     weekOverview,
     removeMeal,
@@ -53,22 +57,22 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
   const yesterdayTotals = yesterdayEntry?.totals ?? null;
 
   const insights = getNutritionInsights({
-    today: todayTotals,
+    today: selectedDayTotals,
     goals,
     yesterday: yesterdayTotals,
-    mealCount: todayMeals.length,
+    mealCount: selectedDayMeals.length,
   });
 
-  const dayState = getNutritionDayState(todayTotals, goals, todayMeals.length);
+  const dayState = getNutritionDayState(selectedDayTotals, goals, selectedDayMeals.length);
   const dayStateCopy = getNutritionDayStateCopy(dayState);
 
   const proteinPct = buildMacroProgress(
-    todayTotals.proteinCurrent,
+    selectedDayTotals.proteinCurrent,
     goals.proteinTarget,
     "protein",
   ).pct;
   const caloriesPct = buildMacroProgress(
-    todayTotals.caloriesCurrent,
+    selectedDayTotals.caloriesCurrent,
     goals.caloriesTarget,
     "calories",
   ).pct;
@@ -125,17 +129,21 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
 
       <NutritionWorkspaceNav tab={tab} />
 
+      <NutritionDayHeader />
+
       {tab === "hoje" && (
         <div className="space-y-5">
           <Surface variant="featured" className="px-5 py-6">
             <NutritionInsightsStrip insights={insights} className="mb-5" />
-            <NutritionDashboardPanel totals={todayTotals} goals={goals} />
+            <NutritionDashboardPanel totals={selectedDayTotals} goals={goals} />
             <div className="mt-6">{registerActions}</div>
           </Surface>
 
           <section>
-            <h3 className="mb-3 text-sm font-medium">Refeições de hoje</h3>
-            {todayMeals.length === 0 ? (
+            <h3 className="mb-3 text-sm font-medium">
+              {isSelectedToday ? "Refeições de hoje" : "Refeições do dia"}
+            </h3>
+            {selectedDayMeals.length === 0 ? (
               <Surface className="px-4 py-8 text-center">
                 <p className="text-sm text-muted-foreground">Nenhuma refeição registrada hoje.</p>
                 <Button variant="link" className="mt-2 text-accent" onClick={() => setSheetOpen(true)}>
@@ -144,16 +152,18 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
               </Surface>
             ) : (
               <div className="space-y-2">
-                {todayMeals.map((meal) => (
+                {selectedDayMeals.map((meal) => (
                   <Surface key={meal.id} className="flex items-center justify-between px-4 py-3">
                     <div>
                       <div className="flex items-baseline gap-2">
                         <p className="font-medium">{MEAL_TYPE_LABELS[meal.type]}</p>
-                        <p className="text-sm font-medium tabular-nums text-accent">+{meal.protein}g</p>
+                        <p className="text-xs tabular-nums text-muted-foreground">
+                          {formatMealTime(meal.loggedAt)}
+                        </p>
+                        <p className="text-sm font-medium tabular-nums text-accent">+{meal.protein}g P</p>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {MEAL_SIZE_ESTIMATES[meal.size].label} · {meal.calories} kcal · {meal.carbs}g C ·{" "}
-                        {meal.fat}g G
+                        {meal.calories} kcal · {meal.carbs}g C · {meal.fat}g G
                       </p>
                     </div>
                     <button
@@ -177,14 +187,14 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
           <Surface variant="featured" className="px-5 py-6">
             <h2 className="text-sm font-medium">Hoje</h2>
             <div className="mt-4">
-              <NutritionDashboardPanel totals={todayTotals} goals={goals} />
+              <NutritionDashboardPanel totals={selectedDayTotals} goals={goals} />
             </div>
           </Surface>
 
           <Surface className="px-5 py-5">
             <h2 className="text-sm font-medium">Distribuição dos macros</h2>
             <p className="mt-1 text-xs text-muted-foreground">Proporção calórica do que você registrou</p>
-            <MacroDistribution totals={todayTotals} className="mt-4" />
+            <MacroDistribution totals={selectedDayTotals} className="mt-4" />
           </Surface>
 
           <Surface className="px-5 py-5">
@@ -317,7 +327,7 @@ export function NutritionWorkspaceScreen({ tab = "hoje" }: NutritionWorkspaceScr
                             >
                               <span>{MEAL_TYPE_LABELS[meal.type]}</span>
                               <span className="tabular-nums">
-                                +{meal.protein}g · {meal.calories} kcal
+                                {formatMealTime(meal.loggedAt)} · +{meal.protein}g · {meal.calories} kcal
                               </span>
                             </li>
                           ))}

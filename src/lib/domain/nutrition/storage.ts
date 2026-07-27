@@ -1,21 +1,36 @@
+import type { MealSize } from "@/lib/domain/types";
 import { MEAL_SIZE_ESTIMATES } from "@/lib/domain/meal-presets";
 
-import { createInitialNutritionStore, DEFAULT_GOALS } from "./defaults";
+import { createInitialNutritionStore } from "./defaults";
 import { enrichMealFromSize } from "./totals";
 import type { LoggedMeal, NutritionStore } from "./types";
 
 const STORAGE_KEY = "evolucao.nutrition.v1";
 
 function migrateMeal(raw: Partial<LoggedMeal>): LoggedMeal | null {
-  if (!raw.id || !raw.dayKey || !raw.type || !raw.size || raw.loggedAt == null) return null;
-  const macros = enrichMealFromSize(raw as LoggedMeal);
+  if (!raw.id || !raw.dayKey || !raw.type || raw.loggedAt == null) return null;
+
+  if (raw.size) {
+    const macros = enrichMealFromSize({ size: raw.size, ...raw } as LoggedMeal & { size: MealSize });
+    return {
+      id: raw.id,
+      dayKey: raw.dayKey,
+      type: raw.type,
+      size: raw.size,
+      loggedAt: raw.loggedAt,
+      ...macros,
+    };
+  }
+
   return {
     id: raw.id,
     dayKey: raw.dayKey,
     type: raw.type,
-    size: raw.size,
+    protein: raw.protein ?? 0,
+    calories: raw.calories ?? 0,
+    carbs: raw.carbs ?? 0,
+    fat: raw.fat ?? 0,
     loggedAt: raw.loggedAt,
-    ...macros,
   };
 }
 

@@ -7,11 +7,21 @@ export interface NutritionGoals {
   fatTarget: number;
 }
 
+export interface MealRegistrationInput {
+  type: MealType;
+  protein: number;
+  calories: number;
+  carbs: number;
+  fat: number;
+  loggedAt: number;
+  dayKey: string;
+}
+
 export interface LoggedMeal {
   id: string;
   dayKey: string;
   type: MealType;
-  size: MealSize;
+  size?: MealSize;
   protein: number;
   calories: number;
   carbs: number;

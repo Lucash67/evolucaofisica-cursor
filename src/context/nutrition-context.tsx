@@ -11,14 +11,18 @@ import {
 } from "react";
 
 import { useDay } from "@/context/day-context";
-import { MEAL_SIZE_ESTIMATES } from "@/lib/domain/meal-presets";
 import { createInitialNutritionStore } from "@/lib/domain/nutrition/defaults";
 import { loadNutritionStore, saveNutritionStore } from "@/lib/domain/nutrition/storage";
 import { computeDayTotals, groupMealsByDay } from "@/lib/domain/nutrition/totals";
 import { buildWeekOverview } from "@/lib/domain/nutrition/weekly";
-import type { LoggedMeal, NutritionGoals, NutritionStore } from "@/lib/domain/nutrition/types";
-import type { MealSize, MealType } from "@/lib/domain/types";
+import type {
+  LoggedMeal,
+  MealRegistrationInput,
+  NutritionGoals,
+  NutritionStore,
+} from "@/lib/domain/nutrition/types";
 import { getDayKey, createId } from "@/lib/domain/training/utils";
+import { isTodayDayKey } from "@/lib/domain/nutrition/date-utils";
 
 function isDemoMode(): boolean {
   if (typeof window === "undefined") return false;
@@ -28,11 +32,17 @@ function isDemoMode(): boolean {
 
 interface NutritionContextValue {
   goals: NutritionGoals;
+  selectedDayKey: string;
+  isSelectedToday: boolean;
+  setSelectedDayKey: (dayKey: string) => void;
+  selectedDayMeals: LoggedMeal[];
+  selectedDayTotals: ReturnType<typeof computeDayTotals>;
   todayMeals: LoggedMeal[];
   todayTotals: ReturnType<typeof computeDayTotals>;
+  daysWithMeals: string[];
   historyByDay: ReturnType<typeof groupMealsByDay>;
   weekOverview: ReturnType<typeof buildWeekOverview>;
-  logMeal: (type: MealType, size: MealSize) => void;
+  logMeal: (input: MealRegistrationInput) => void;
   removeMeal: (mealId: string) => void;
   repeatLastMeal: () => void;
   updateGoals: (goals: Partial<NutritionGoals>) => void;
@@ -43,6 +53,7 @@ const NutritionContext = createContext<NutritionContextValue | null>(null);
 export function NutritionProvider({ children }: { children: ReactNode }) {
   const { hydrateNutrition, applyMealRegistration } = useDay();
   const [store, setStore] = useState<NutritionStore>(() => loadNutritionStore());
+  const [selectedDayKey, setSelectedDayKey] = useState(() => getDayKey());
 
   useEffect(() => {
     saveNutritionStore(store);
@@ -73,22 +84,28 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logMeal = useCallback(
-    (type: MealType, size: MealSize) => {
-      const estimate = MEAL_SIZE_ESTIMATES[size];
+    (input: MealRegistrationInput) => {
       const meal: LoggedMeal = {
         id: createId(),
-        dayKey: getDayKey(),
-        type,
-        size,
-        protein: estimate.protein,
-        calories: estimate.calories,
-        carbs: estimate.carbs,
-        fat: estimate.fat,
-        loggedAt: Date.now(),
+        dayKey: input.dayKey,
+        type: input.type,
+        protein: input.protein,
+        calories: input.calories,
+        carbs: input.carbs,
+        fat: input.fat,
+        loggedAt: input.loggedAt,
       };
 
       persist((prev) => ({ ...prev, meals: [meal, ...prev.meals] }));
-      applyMealRegistration(type, size);
+
+      if (isTodayDayKey(input.dayKey)) {
+        applyMealRegistration(input.type, {
+          protein: input.protein,
+          calories: input.calories,
+          carbs: input.carbs,
+          fat: input.fat,
+        });
+      }
     },
     [applyMealRegistration, persist],
   );
@@ -104,10 +121,22 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
   );
 
   const repeatLastMeal = useCallback(() => {
-    const last = store.meals[0];
+    const dayMeals = store.meals
+      .filter((m) => m.dayKey === selectedDayKey)
+      .sort((a, b) => b.loggedAt - a.loggedAt);
+    const last = dayMeals[0] ?? store.meals[0];
     if (!last) return;
-    logMeal(last.type, last.size);
-  }, [logMeal, store.meals]);
+
+    logMeal({
+      type: last.type,
+      protein: last.protein,
+      calories: last.calories,
+      carbs: last.carbs,
+      fat: last.fat,
+      dayKey: selectedDayKey,
+      loggedAt: Date.now(),
+    });
+  }, [logMeal, selectedDayKey, store.meals]);
 
   const updateGoals = useCallback(
     (patch: Partial<NutritionGoals>) => {
@@ -119,29 +148,58 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
     [persist],
   );
 
-  const dayKey = getDayKey();
+  const todayKey = getDayKey();
+
+  const selectedDayMeals = useMemo(
+    () =>
+      store.meals
+        .filter((m) => m.dayKey === selectedDayKey)
+        .sort((a, b) => b.loggedAt - a.loggedAt),
+    [store.meals, selectedDayKey],
+  );
+
+  const selectedDayTotals = useMemo(
+    () => computeDayTotals(store.meals, selectedDayKey),
+    [store.meals, selectedDayKey],
+  );
+
   const todayMeals = useMemo(
     () =>
       store.meals
-        .filter((m) => m.dayKey === dayKey)
+        .filter((m) => m.dayKey === todayKey)
         .sort((a, b) => b.loggedAt - a.loggedAt),
-    [store.meals, dayKey],
+    [store.meals, todayKey],
   );
+
   const todayTotals = useMemo(
-    () => computeDayTotals(store.meals, dayKey),
-    [store.meals, dayKey],
+    () => computeDayTotals(store.meals, todayKey),
+    [store.meals, todayKey],
   );
+
+  const daysWithMeals = useMemo(
+    () => [...new Set(store.meals.map((m) => m.dayKey))],
+    [store.meals],
+  );
+
   const historyByDay = useMemo(() => groupMealsByDay(store.meals), [store.meals]);
   const weekOverview = useMemo(
     () => buildWeekOverview(store.meals, store.goals),
     [store.meals, store.goals],
   );
 
+  const isSelectedToday = isTodayDayKey(selectedDayKey);
+
   const value = useMemo(
     () => ({
       goals: store.goals,
+      selectedDayKey,
+      isSelectedToday,
+      setSelectedDayKey,
+      selectedDayMeals,
+      selectedDayTotals,
       todayMeals,
       todayTotals,
+      daysWithMeals,
       historyByDay,
       weekOverview,
       logMeal,
@@ -149,7 +207,22 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
       repeatLastMeal,
       updateGoals,
     }),
-    [store.goals, todayMeals, todayTotals, historyByDay, weekOverview, logMeal, removeMeal, repeatLastMeal, updateGoals],
+    [
+      store.goals,
+      selectedDayKey,
+      isSelectedToday,
+      selectedDayMeals,
+      selectedDayTotals,
+      todayMeals,
+      todayTotals,
+      daysWithMeals,
+      historyByDay,
+      weekOverview,
+      logMeal,
+      removeMeal,
+      repeatLastMeal,
+      updateGoals,
+    ],
   );
 
   return <NutritionContext.Provider value={value}>{children}</NutritionContext.Provider>;
