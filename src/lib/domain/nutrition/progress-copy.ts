@@ -1,6 +1,8 @@
 import type { MealType } from "@/lib/domain/types";
 import { getDayKey } from "@/lib/domain/training/utils";
 
+import { buildMacroProgress } from "./macro-progress";
+
 export interface ProteinProgressView {
   current: number;
   target: number;
@@ -9,12 +11,12 @@ export interface ProteinProgressView {
 }
 
 export function buildProteinProgress(current: number, target: number): ProteinProgressView {
-  const safeTarget = Math.max(1, target);
+  const view = buildMacroProgress(current, target, "protein");
   return {
-    current,
-    target: safeTarget,
-    gap: Math.max(0, safeTarget - current),
-    pct: Math.min(100, Math.round((current / safeTarget) * 100)),
+    current: view.current,
+    target: view.target,
+    gap: view.gap,
+    pct: view.pct,
   };
 }
 

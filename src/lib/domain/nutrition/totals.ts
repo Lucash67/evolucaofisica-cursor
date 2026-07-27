@@ -1,4 +1,6 @@
 import type { MealType } from "@/lib/domain/types";
+import { MEAL_SIZE_ESTIMATES } from "@/lib/domain/meal-presets";
+
 import type { DayNutritionTotals, LoggedMeal } from "./types";
 
 export function computeDayTotals(meals: LoggedMeal[], dayKey: string): DayNutritionTotals {
@@ -6,16 +8,20 @@ export function computeDayTotals(meals: LoggedMeal[], dayKey: string): DayNutrit
   const registeredMeals: MealType[] = [];
   let proteinCurrent = 0;
   let caloriesCurrent = 0;
+  let carbsCurrent = 0;
+  let fatCurrent = 0;
 
   for (const meal of dayMeals) {
     proteinCurrent += meal.protein;
     caloriesCurrent += meal.calories;
+    carbsCurrent += meal.carbs;
+    fatCurrent += meal.fat;
     if (!registeredMeals.includes(meal.type)) {
       registeredMeals.push(meal.type);
     }
   }
 
-  return { proteinCurrent, caloriesCurrent, registeredMeals };
+  return { proteinCurrent, caloriesCurrent, carbsCurrent, fatCurrent, registeredMeals };
 }
 
 export function groupMealsByDay(
@@ -32,4 +38,19 @@ export function groupMealsByDay(
       totals: computeDayTotals(meals, dayKey),
     };
   });
+}
+
+export function enrichMealFromSize(meal: Partial<LoggedMeal> & Pick<LoggedMeal, "size">): {
+  protein: number;
+  calories: number;
+  carbs: number;
+  fat: number;
+} {
+  const est = MEAL_SIZE_ESTIMATES[meal.size];
+  return {
+    protein: meal.protein ?? est.protein,
+    calories: meal.calories ?? est.calories,
+    carbs: meal.carbs ?? est.carbs,
+    fat: meal.fat ?? est.fat,
+  };
 }

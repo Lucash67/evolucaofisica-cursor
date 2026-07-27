@@ -16,6 +16,8 @@ import { Route as AppProgressoRouteImport } from './routes/_app/progresso'
 import { Route as AppNutricaoIndexRouteImport } from './routes/_app/nutricao/index'
 import { Route as AppNutricaoHistoricoRouteImport } from './routes/_app/nutricao/historico'
 import { Route as AppNutricaoMetasRouteImport } from './routes/_app/nutricao/metas'
+import { Route as AppNutricaoResumoRouteImport } from './routes/_app/nutricao/resumo'
+import { Route as AppNutricaoSemanaRouteImport } from './routes/_app/nutricao/semana'
 import { Route as AppTreinoIndexRouteImport } from './routes/_app/treino/index'
 import { Route as AppTreinoFechamentoRouteImport } from './routes/_app/treino/fechamento'
 import { Route as AppTreinoHistoricoRouteImport } from './routes/_app/treino/historico'
@@ -60,6 +62,16 @@ const AppNutricaoHistoricoRoute = AppNutricaoHistoricoRouteImport.update({
 const AppNutricaoMetasRoute = AppNutricaoMetasRouteImport.update({
   id: '/nutricao/metas',
   path: '/nutricao/metas',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNutricaoResumoRoute = AppNutricaoResumoRouteImport.update({
+  id: '/nutricao/resumo',
+  path: '/nutricao/resumo',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNutricaoSemanaRoute = AppNutricaoSemanaRouteImport.update({
+  id: '/nutricao/semana',
+  path: '/nutricao/semana',
   getParentRoute: () => AppRoute,
 } as any)
 const AppTreinoIndexRoute = AppTreinoIndexRouteImport.update({
@@ -130,6 +142,8 @@ export interface FileRoutesByFullPath {
   '/progresso': typeof AppProgressoRoute
   '/nutricao/historico': typeof AppNutricaoHistoricoRoute
   '/nutricao/metas': typeof AppNutricaoMetasRoute
+  '/nutricao/resumo': typeof AppNutricaoResumoRoute
+  '/nutricao/semana': typeof AppNutricaoSemanaRoute
   '/treino/fechamento': typeof AppTreinoFechamentoRoute
   '/treino/historico': typeof AppTreinoHistoricoRouteWithChildren
   '/treino/sessao': typeof AppTreinoSessaoRoute
@@ -149,6 +163,8 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/nutricao/historico': typeof AppNutricaoHistoricoRoute
   '/nutricao/metas': typeof AppNutricaoMetasRoute
+  '/nutricao/resumo': typeof AppNutricaoResumoRoute
+  '/nutricao/semana': typeof AppNutricaoSemanaRoute
   '/treino/fechamento': typeof AppTreinoFechamentoRoute
   '/treino/historico': typeof AppTreinoHistoricoRouteWithChildren
   '/treino/sessao': typeof AppTreinoSessaoRoute
@@ -170,6 +186,8 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/nutricao/historico': typeof AppNutricaoHistoricoRoute
   '/_app/nutricao/metas': typeof AppNutricaoMetasRoute
+  '/_app/nutricao/resumo': typeof AppNutricaoResumoRoute
+  '/_app/nutricao/semana': typeof AppNutricaoSemanaRoute
   '/_app/treino/fechamento': typeof AppTreinoFechamentoRoute
   '/_app/treino/historico': typeof AppTreinoHistoricoRouteWithChildren
   '/_app/treino/sessao': typeof AppTreinoSessaoRoute
@@ -191,6 +209,8 @@ export interface FileRouteTypes {
     | '/progresso'
     | '/nutricao/historico'
     | '/nutricao/metas'
+    | '/nutricao/resumo'
+    | '/nutricao/semana'
     | '/treino/fechamento'
     | '/treino/historico'
     | '/treino/sessao'
@@ -210,6 +230,8 @@ export interface FileRouteTypes {
     | '/'
     | '/nutricao/historico'
     | '/nutricao/metas'
+    | '/nutricao/resumo'
+    | '/nutricao/semana'
     | '/treino/fechamento'
     | '/treino/historico'
     | '/treino/sessao'
@@ -230,6 +252,8 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/nutricao/historico'
     | '/_app/nutricao/metas'
+    | '/_app/nutricao/resumo'
+    | '/_app/nutricao/semana'
     | '/_app/treino/fechamento'
     | '/_app/treino/historico'
     | '/_app/treino/sessao'
@@ -297,6 +321,20 @@ declare module '@tanstack/react-router' {
       path: '/nutricao/metas'
       fullPath: '/nutricao/metas'
       preLoaderRoute: typeof AppNutricaoMetasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/nutricao/resumo': {
+      id: '/_app/nutricao/resumo'
+      path: '/nutricao/resumo'
+      fullPath: '/nutricao/resumo'
+      preLoaderRoute: typeof AppNutricaoResumoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/nutricao/semana': {
+      id: '/_app/nutricao/semana'
+      path: '/nutricao/semana'
+      fullPath: '/nutricao/semana'
+      preLoaderRoute: typeof AppNutricaoSemanaRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/treino/': {
@@ -398,6 +436,8 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppNutricaoHistoricoRoute: typeof AppNutricaoHistoricoRoute
   AppNutricaoMetasRoute: typeof AppNutricaoMetasRoute
+  AppNutricaoResumoRoute: typeof AppNutricaoResumoRoute
+  AppNutricaoSemanaRoute: typeof AppNutricaoSemanaRoute
   AppTreinoFechamentoRoute: typeof AppTreinoFechamentoRoute
   AppTreinoHistoricoRoute: typeof AppTreinoHistoricoRouteWithChildren
   AppTreinoSessaoRoute: typeof AppTreinoSessaoRoute
@@ -416,6 +456,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppNutricaoHistoricoRoute: AppNutricaoHistoricoRoute,
   AppNutricaoMetasRoute: AppNutricaoMetasRoute,
+  AppNutricaoResumoRoute: AppNutricaoResumoRoute,
+  AppNutricaoSemanaRoute: AppNutricaoSemanaRoute,
   AppTreinoFechamentoRoute: AppTreinoFechamentoRoute,
   AppTreinoHistoricoRoute: AppTreinoHistoricoRouteWithChildren,
   AppTreinoSessaoRoute: AppTreinoSessaoRoute,

@@ -15,6 +15,7 @@ import { MEAL_SIZE_ESTIMATES } from "@/lib/domain/meal-presets";
 import { createInitialNutritionStore } from "@/lib/domain/nutrition/defaults";
 import { loadNutritionStore, saveNutritionStore } from "@/lib/domain/nutrition/storage";
 import { computeDayTotals, groupMealsByDay } from "@/lib/domain/nutrition/totals";
+import { buildWeekOverview } from "@/lib/domain/nutrition/weekly";
 import type { LoggedMeal, NutritionGoals, NutritionStore } from "@/lib/domain/nutrition/types";
 import type { MealSize, MealType } from "@/lib/domain/types";
 import { getDayKey, createId } from "@/lib/domain/training/utils";
@@ -30,6 +31,7 @@ interface NutritionContextValue {
   todayMeals: LoggedMeal[];
   todayTotals: ReturnType<typeof computeDayTotals>;
   historyByDay: ReturnType<typeof groupMealsByDay>;
+  weekOverview: ReturnType<typeof buildWeekOverview>;
   logMeal: (type: MealType, size: MealSize) => void;
   removeMeal: (mealId: string) => void;
   repeatLastMeal: () => void;
@@ -80,6 +82,8 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
         size,
         protein: estimate.protein,
         calories: estimate.calories,
+        carbs: estimate.carbs,
+        fat: estimate.fat,
         loggedAt: Date.now(),
       };
 
@@ -128,6 +132,10 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
     [store.meals, dayKey],
   );
   const historyByDay = useMemo(() => groupMealsByDay(store.meals), [store.meals]);
+  const weekOverview = useMemo(
+    () => buildWeekOverview(store.meals, store.goals),
+    [store.meals, store.goals],
+  );
 
   const value = useMemo(
     () => ({
@@ -135,12 +143,13 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
       todayMeals,
       todayTotals,
       historyByDay,
+      weekOverview,
       logMeal,
       removeMeal,
       repeatLastMeal,
       updateGoals,
     }),
-    [store.goals, todayMeals, todayTotals, historyByDay, logMeal, removeMeal, repeatLastMeal, updateGoals],
+    [store.goals, todayMeals, todayTotals, historyByDay, weekOverview, logMeal, removeMeal, repeatLastMeal, updateGoals],
   );
 
   return <NutritionContext.Provider value={value}>{children}</NutritionContext.Provider>;
