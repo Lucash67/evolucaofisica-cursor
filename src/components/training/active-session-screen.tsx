@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
@@ -43,6 +44,7 @@ export function ActiveSessionScreen() {
 
   const [restVisible, setRestVisible] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  const [isFinishing, setIsFinishing] = useState(false);
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -51,8 +53,13 @@ export function ActiveSessionScreen() {
     return () => clearInterval(id);
   }, [activeSession]);
 
+  useEffect(() => {
+    if (!activeSession && !isFinishing) {
+      navigate({ to: "/treino" });
+    }
+  }, [activeSession, isFinishing, navigate]);
+
   if (!activeSession) {
-    navigate({ to: "/treino" });
     return null;
   }
 
@@ -75,9 +82,12 @@ export function ActiveSessionScreen() {
   };
 
   const finish = () => {
-    finishSessionWithClosure();
-    completeWorkout();
+    setIsFinishing(true);
     setConfirmFinish(false);
+    flushSync(() => {
+      finishSessionWithClosure();
+    });
+    completeWorkout();
     navigate({ to: "/treino/fechamento" });
   };
 

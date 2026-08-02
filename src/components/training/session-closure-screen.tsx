@@ -19,18 +19,21 @@ export function SessionClosureScreen() {
   const [phase, setPhase] = useState<ClosurePhase>("recognition");
 
   useEffect(() => {
-    if (!pendingClosure) {
-      navigate({ to: "/treino" });
-      return;
+    if (pendingClosure) {
+      const t1 = setTimeout(() => setPhase("stats"), 800);
+      const t2 = setTimeout(() => setPhase("bridge"), 2400);
+      const t3 = setTimeout(() => setPhase("action"), 3600);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
     }
-    const t1 = setTimeout(() => setPhase("stats"), 800);
-    const t2 = setTimeout(() => setPhase("bridge"), 2400);
-    const t3 = setTimeout(() => setPhase("action"), 3600);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
+
+    const fallback = setTimeout(() => {
+      navigate({ to: "/treino" });
+    }, 100);
+    return () => clearTimeout(fallback);
   }, [pendingClosure, navigate]);
 
   if (!pendingClosure) return null;
